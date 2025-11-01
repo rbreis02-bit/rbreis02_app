@@ -1,16 +1,14 @@
-import streamlit as st
+mport streamlit as st
 import pandas as pd
-import plotly.express as px # Importando Plotly para o gráfico
 
 # --- Configurações ---
 NOME_ARQUIVO = 'custos.xlsx'
 COLUNA_GRUPO_PLANEJAMENTO = 'Grp.planej.manutenç.'
-COLUNA_VALOR = 'Valor'
-COLUNA_SUPERINTENDENCIA = 'Superintendência' # Nova coluna para o gráfico
+COLUNA_VALOR = 'Valor' # Adicionando a coluna Valor para o cálculo
 
 # 1. Configurar o layout da página para "wide" (largura total)
-st.set_page_config(layout="wide", page_title="Análise de Custos com Gráfico")
-st.title("Análise de Custos: Subtotal e Distribuição")
+st.set_page_config(layout="wide", page_title="Visualização de Custos com Filtro")
+st.title("Visualização da Base de Dados de Custos com Filtro")
 
 try:
     # 2. Carregar os dados
@@ -42,39 +40,17 @@ try:
     subtotal_valor = df_filtrado[COLUNA_VALOR].sum()
     
     # 7. Exibir o Subtotal em um Cartão (st.metric)
+    # Usamos o formatador de moeda brasileira (R$)
     st.metric(
         label=f"Subtotal de Gastos para {grupo_selecionado}",
         value=f"R$ {subtotal_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     )
     
-    st.markdown("---")
-    
-    # 8. Análise de Distribuição (Novo Passo)
-    st.header(f"Distribuição de Gastos por {COLUNA_SUPERINTENDENCIA}")
-    
-    # Agrupar os dados filtrados por Superintendência e somar os valores
-    gastos_por_super = df_filtrado.groupby(COLUNA_SUPERINTENDENCIA)[COLUNA_VALOR].sum().reset_index()
-    gastos_por_super.columns = [COLUNA_SUPERINTENDENCIA, 'Total Gasto']
-    
-    # Criar o gráfico de barras interativo com Plotly
-    fig = px.bar(
-        gastos_por_super.sort_values(by='Total Gasto', ascending=False),
-        x='Total Gasto',
-        y=COLUNA_SUPERINTENDENCIA,
-        orientation='h',
-        title=f'Gastos por Superintendência em {grupo_selecionado}',
-        labels={'Total Gasto': 'Total Gasto (R$)', COLUNA_SUPERINTENDENCIA: 'Superintendência'},
-        height=500
-    )
-    
-    # Exibir o gráfico
-    st.plotly_chart(fig, use_container_width=True)
-    
-    st.markdown("---")
-    
-    # 9. Exibir a Tabela de Detalhes
+    # 8. Exibir o restante do resultado
     st.subheader(f"Detalhes dos Registros: {grupo_selecionado}")
     st.write(f"Total de registros: {len(df_filtrado)}")
+    
+    # Exibir a tabela filtrada
     st.dataframe(df_filtrado, use_container_width=True)
     
 except FileNotFoundError:
